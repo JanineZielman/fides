@@ -4,20 +4,25 @@ import { useRef, useState, useEffect } from 'react';
 
 export default function Poster() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const [imageURL, setImageURL] = useState<string | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  const [brushColor, setBrushColor] = useState('#000000');
+  const colorFamilies = [
+    ['#857733', '#acfdf8', '#1c25d3'], // Blue
+  ];
+  const [brushColor, setBrushColor] = useState('#857733');
   const [brushSize, setBrushSize] = useState(10);
   const [brushShape, setBrushShape] = useState<'round' | 'square'>('round');
   const [brushType, setBrushType] = useState<'default' | 'fine-liner' | 'charcoal' | 'watermark'>('default');
 
   const [charcoalPattern, setCharcoalPattern] = useState<CanvasPattern | null>(null);
 
+
   // Load charcoal texture
   useEffect(() => {
     const img = new Image();
-    img.src = '/charcoal-texture.png'; // must be in /public
+    img.src = '/charcoal-texture.png';
     img.onload = () => {
       const patternCanvas = document.createElement('canvas');
       patternCanvas.width = img.width;
@@ -44,7 +49,6 @@ export default function Poster() {
     ctx.lineCap = brushShape;
     ctx.lineJoin = 'round';
 
-    // Choose settings based on brush type
     switch (brushType) {
       case 'fine-liner':
         ctx.strokeStyle = brushColor;
@@ -52,11 +56,7 @@ export default function Poster() {
         ctx.globalAlpha = 1;
         break;
       case 'charcoal':
-        if (charcoalPattern) {
-          ctx.strokeStyle = charcoalPattern;
-        } else {
-          ctx.strokeStyle = brushColor;
-        }
+        ctx.strokeStyle = charcoalPattern || brushColor;
         ctx.lineWidth = brushSize;
         ctx.globalAlpha = 1;
         break;
@@ -97,35 +97,46 @@ export default function Poster() {
     setIsDrawing(false);
   };
 
-  useEffect(() => {
-    if (imageURL && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      img.src = imageURL;
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx?.drawImage(img, 0, 0);
-      };
+  // Resize canvas to match the frame
+  const resizeCanvasToFrame = () => {
+    const canvas = canvasRef.current;
+    const frame = frameRef.current;
+    if (canvas && frame) {
+      canvas.width = frame.clientWidth;
+      canvas.height = frame.clientHeight;
     }
-  }, [imageURL]);
+  };
+
+  useEffect(() => {
+    resizeCanvasToFrame();
+    window.addEventListener('resize', resizeCanvasToFrame);
+    return () => window.removeEventListener('resize', resizeCanvasToFrame);
+  }, []);
+
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="poster-wrapper">
+
+      <div className="options">
       <input type="file" accept="image/*" onChange={handleImageUpload} />
 
-      <div className="flex flex-wrap gap-4 items-center">
-        <label>
-          Brush Color:
-          <input
-            type="color"
-            value={brushColor}
-            onChange={(e) => setBrushColor(e.target.value)}
-            disabled={brushType === 'charcoal'}
-            className="ml-2"
-          />
-        </label>
+        <div className="color-families">
+          <span className="font-bold mr-2">Brush Colors:</span>
+          {colorFamilies.map((family, index) => (
+            <div key={index} className="color-family">
+              {family.map((color) => (
+                <button
+                  key={color}
+                  className={`color-swatch ${brushColor === color ? 'selected' : ''}`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => setBrushColor(color)}
+                  disabled={brushType === 'charcoal'}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+
 
         <label>
           Brush Size:
@@ -169,14 +180,40 @@ export default function Poster() {
         </label>
       </div>
 
-      <canvas
-        ref={canvasRef}
-        className="border rounded shadow"
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-      />
+      <div ref={frameRef} className="frame relative overflow-hidden">
+        {/* Background Image */}
+        {imageURL && (
+          <img
+            src={imageURL}
+            alt="Uploaded"
+            className="absolute top-0 left-0 w-full h-full object-cover z-0"
+            style={{ pointerEvents: 'none' }}
+          />
+        )}
+
+        {/* Editable Titles */}
+        <div className="title-wrapper t1">
+          <h1 className="title1" contentEditable>Project titel</h1>
+          <div className="line"></div>
+        </div>
+
+        {/* Drawing Canvas */}
+        <canvas
+          ref={canvasRef}
+          className="absolute top-0 left-0 w-full h-full z-10"
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+        />
+
+        <div className="title-wrapper t2">
+          <div className="line"></div>
+          <h1 className="title2" contentEditable>Project titel</h1>
+        </div>
+
+        <div className="footer relative z-20">– Fides Lapidair</div>
+      </div>
     </div>
   );
 }
