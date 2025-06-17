@@ -1,0 +1,31 @@
+{
+  "format": "custom",
+  "id": "logo",
+  "label": "Logo",
+  "repeatable": false,
+  "status": true,
+  "json": {
+    "Main": {
+      "images": {
+        "type": "Group",
+        "config": {
+          "label": "Images",
+          "repeat": true,
+          "fields": {
+            "image": {
+              "type": "Image",
+              "config": {
+                "label": "Image",
+                "constraint": {
+                  "width": null,
+                  "height": 1080
+                },
+                "thumbnails": []
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
