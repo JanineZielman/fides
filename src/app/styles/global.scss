@@ -70,12 +70,12 @@ h1,h2,h3,h4,h5,h6{
 }
 
 .frame {
-  width: 40vw;
-  height: 40vw;
+  width: 600px;
+  height: 600px;
   border: 1px solid black;
   position: relative;
   margin: 0 auto;
-  margin-top: 50px;
+  margin-top: 14px;
   overflow: hidden;
 
   canvas {
@@ -90,14 +90,15 @@ h1,h2,h3,h4,h5,h6{
 
   img {
     position: absolute;
-    top: 48%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 22%;
+    left: 5%;
     z-index: 0;
     width: 90%;
     height: 65%;
     object-fit: contain;
+    object-position: center;
     pointer-events: none;
+    z-index: -1;
   }
 
   .title-wrapper {
@@ -105,9 +106,15 @@ h1,h2,h3,h4,h5,h6{
     align-items: flex-end;
     padding: 24px;
     z-index: 20;
-    // z-index: -1;
+    z-index: -1;
     position: absolute;
     width: 100%;
+
+    .wrapper{
+      width: 100%;
+      display: flex;
+      margin-bottom: 10px;
+    }
 
     .line {
       border-bottom: 4px solid black;
@@ -116,7 +123,7 @@ h1,h2,h3,h4,h5,h6{
 
     h1 {
       width: fit-content;
-      font-size: 3vw;
+      font-size: 38px;
       line-height: 1;
       margin: 0;
       white-space: nowrap;
@@ -127,16 +134,19 @@ h1,h2,h3,h4,h5,h6{
         text-align: right;
         margin-left: 0;
         margin-right: auto;
-        padding-right: 14px;
       }
 
       &.title2 {
         text-align: right;
         margin-right: 0;
         margin-left: auto;
-        padding-left: 14px;
       }
     }
+  }
+
+  .t1{
+    flex-wrap: wrap;
+
   }
 
   .t2{
