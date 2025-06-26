@@ -17,14 +17,13 @@ export default function Poster() {
     ['rgb(71,8,20)', 'rgb(173,252,247)', 'rgb(172,62,46)'], // Overig
   ];
 
-  const [selectedPalette, setSelectedPalette] = useState<number>(-1);
-  const [brushColor, setBrushColor] = useState('#857733');
+  const [selectedFamilyIndex, setSelectedFamilyIndex] = useState(0);
+  const [brushColor, setBrushColor] = useState(colorFamilies[0][0]);
   const [brushSize, setBrushSize] = useState(10);
   const [brushShape, setBrushShape] = useState<'round' | 'square'>('round');
   const [brushType, setBrushType] = useState<'default' | 'fine-liner' | 'charcoal' | 'watermark'>('default');
   const [charcoalPattern, setCharcoalPattern] = useState<CanvasPattern | null>(null);
 
-  // Load charcoal texture
   useEffect(() => {
     const img = new Image();
     img.src = '/charcoal-texture.png';
@@ -61,7 +60,23 @@ export default function Poster() {
         ctx.globalAlpha = 1;
         break;
       case 'charcoal':
-        ctx.strokeStyle = charcoalPattern || brushColor;
+        if (charcoalPattern) {
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = 100;
+          tempCanvas.height = 100;
+          const tempCtx = tempCanvas.getContext('2d');
+          if (tempCtx) {
+            tempCtx.fillStyle = brushColor;
+            tempCtx.fillRect(0, 0, 100, 100);
+            tempCtx.globalCompositeOperation = 'multiply';
+            tempCtx.drawImage(tempCanvas, 0, 0);
+            const ctxPattern = tempCtx.createPattern(tempCanvas, 'repeat');
+            if (ctxPattern) ctx.strokeStyle = ctxPattern;
+            else ctx.strokeStyle = brushColor;
+          }
+        } else {
+          ctx.strokeStyle = brushColor;
+        }
         ctx.lineWidth = brushSize;
         ctx.globalAlpha = 1;
         break;
@@ -102,23 +117,14 @@ export default function Poster() {
     setIsDrawing(false);
   };
 
-  // Resize canvas to match the frame
   const resizeCanvasToFrame = () => {
     const canvas = canvasRef.current;
     const frame = frameRef.current;
-    const dpr = window.devicePixelRatio || 1;
-  
     if (canvas && frame) {
-      canvas.width = frame.clientWidth * dpr;
-      canvas.height = frame.clientHeight * dpr;
-      canvas.style.width = `${frame.clientWidth}px`;
-      canvas.style.height = `${frame.clientHeight}px`;
-  
-      const ctx = canvas.getContext('2d');
-      if (ctx) ctx.scale(dpr, dpr); // Scale drawing operations
+      canvas.width = frame.clientWidth;
+      canvas.height = frame.clientHeight;
     }
   };
-  
 
   useEffect(() => {
     resizeCanvasToFrame();
@@ -127,19 +133,22 @@ export default function Poster() {
   }, []);
 
   return (
-    <div className="poster-wrapper">
-      <div className="options">
+    <div className="poster-wrapper p-4 space-y-4">
+      <div className="options space-y-4">
         <input type="file" accept="image/*" onChange={handleImageUpload} />
 
-        {/* Color Palette Selection */}
-        <div className="color-families mb-4">
+        {/* Palette Dropdown */}
+        <div className="color-families">
           <label className="font-bold mr-2">Color Palette:</label>
           <select
-            value={selectedPalette}
-            onChange={(e) => setSelectedPalette(Number(e.target.value))}
+            value={selectedFamilyIndex}
+            onChange={(e) => {
+              const newIndex = parseInt(e.target.value);
+              setSelectedFamilyIndex(newIndex);
+              setBrushColor(colorFamilies[newIndex][0]); // Update to first color
+            }}
             className="ml-2"
           >
-            <option value={-1}>Select a Palette</option>
             {colorFamilies.map((_, index) => (
               <option key={index} value={index}>
                 Palette {index + 1}
@@ -147,20 +156,23 @@ export default function Poster() {
             ))}
           </select>
 
-          {/* Show only selected palette colors */}
-          {selectedPalette !== -1 && (
-            <div className="color-family mt-2">
-              {colorFamilies[selectedPalette].map((color) => (
-                <button
-                  key={color}
-                  className={`color-swatch ${brushColor === color ? 'selected' : ''}`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => setBrushColor(color)}
-                  disabled={brushType === 'charcoal'}
-                />
-              ))}
-            </div>
-          )}
+          {/* Color Swatches */}
+          <div className="color-family mt-2 flex gap-2">
+            {colorFamilies[selectedFamilyIndex].map((color) => (
+              <button
+                key={color}
+                className={`color-swatch ${brushColor === color ? 'ring-2 ring-black' : ''}`}
+                style={{
+                  backgroundColor: color,
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '9999px',
+                  border: '1px solid #ccc',
+                }}
+                onClick={() => setBrushColor(color)}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Brush Settings */}
@@ -206,8 +218,7 @@ export default function Poster() {
         </label>
       </div>
 
-      <div ref={frameRef} className="frame relative overflow-hidden">
-        {/* Background Image */}
+      <div ref={frameRef} className="frame relative overflow-hidden border border-gray-300">
         {imageURL && (
           <img
             src={imageURL}
@@ -217,13 +228,12 @@ export default function Poster() {
           />
         )}
 
-        {/* Editable Titles */}
         <div className="title-wrapper t1">
           <h1 className="title1" contentEditable>Project titel</h1>
           <div className="line"></div>
+          <h1 className="title1" contentEditable>Project titel</h1>
         </div>
 
-        {/* Drawing Canvas */}
         <canvas
           ref={canvasRef}
           className="absolute top-0 left-0 w-full h-full z-10"
@@ -234,11 +244,10 @@ export default function Poster() {
         />
 
         <div className="title-wrapper t2">
+          <h1 className="title2">Fides</h1>
           <div className="line"></div>
-          <h1 className="title2" contentEditable>Project titel</h1>
+          <h1 className="title2">Lapidaire</h1>
         </div>
-
-        <div className="footer relative z-20">– Fides Lapidaire</div>
       </div>
     </div>
   );
