@@ -52,45 +52,63 @@ export default function Poster() {
   const applyBrushSettings = (ctx: CanvasRenderingContext2D) => {
     ctx.lineCap = brushShape;
     ctx.lineJoin = 'round';
-
+  
     switch (brushType) {
       case 'fine-liner':
         ctx.strokeStyle = brushColor;
         ctx.lineWidth = 1;
         ctx.globalAlpha = 1;
         break;
+  
       case 'charcoal':
         if (charcoalPattern) {
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = 100;
-          tempCanvas.height = 100;
-          const tempCtx = tempCanvas.getContext('2d');
-          if (tempCtx) {
+          const img = new Image();
+          img.src = '/charcoal-texture.png';
+          img.onload = () => {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            if (!tempCtx) return;
+  
+            // Draw the charcoal image
+            tempCtx.drawImage(img, 0, 0);
+  
+            // Set the composite mode and fill with brush color
+            tempCtx.globalCompositeOperation = 'source-in';
             tempCtx.fillStyle = brushColor;
-            tempCtx.fillRect(0, 0, 100, 100);
-            tempCtx.globalCompositeOperation = 'multiply';
-            tempCtx.drawImage(tempCanvas, 0, 0);
-            const ctxPattern = tempCtx.createPattern(tempCanvas, 'repeat');
-            if (ctxPattern) ctx.strokeStyle = ctxPattern;
-            else ctx.strokeStyle = brushColor;
-          }
+            tempCtx.fillRect(0, 0, img.width, img.height);
+  
+            const tintedPattern = ctx.createPattern(tempCanvas, 'repeat');
+            if (tintedPattern) {
+              ctx.strokeStyle = tintedPattern;
+            } else {
+              ctx.strokeStyle = brushColor;
+            }
+  
+            ctx.lineWidth = brushSize;
+            ctx.globalAlpha = 1;
+          };
         } else {
           ctx.strokeStyle = brushColor;
+          ctx.lineWidth = brushSize;
+          ctx.globalAlpha = 1;
         }
-        ctx.lineWidth = brushSize;
-        ctx.globalAlpha = 1;
         break;
+  
       case 'watermark':
         ctx.strokeStyle = brushColor;
         ctx.lineWidth = brushSize;
         ctx.globalAlpha = 0.1;
         break;
+  
       default:
         ctx.strokeStyle = brushColor;
         ctx.lineWidth = brushSize;
         ctx.globalAlpha = 1;
     }
   };
+  
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
