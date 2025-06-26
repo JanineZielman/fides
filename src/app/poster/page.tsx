@@ -9,15 +9,20 @@ export default function Poster() {
   const [isDrawing, setIsDrawing] = useState(false);
 
   const colorFamilies = [
-    ['#857733', '#acfdf8', '#1c25d3'], // Blue
+    ['rgb(87,43,2)', 'rgb(228,234,97)', 'rgb(214,220,221)'], // Bodem en voedsel 1
+    ['rgb(173,252,247)', 'rgb(255,102,49)', 'rgb(87,43,2)'], // Bodem en voedsel 2
+    ['rgb(255,255,55)', 'rgb(207,246,98)', 'rgb(1,95,81)'], // Ontwerpende aanpak / social design
+    ['rgb(31,46,255)', 'rgb(255,0,0)', 'rgb(151,207,239)'], // Water en klimaat
+    ['rgb(255,0,0)', 'rgb(1,95,81)', 'rgb(227,191,238)'], // Geven
+    ['rgb(71,8,20)', 'rgb(173,252,247)', 'rgb(172,62,46)'], // Overig
   ];
+
+  const [selectedPalette, setSelectedPalette] = useState<number>(-1);
   const [brushColor, setBrushColor] = useState('#857733');
   const [brushSize, setBrushSize] = useState(10);
   const [brushShape, setBrushShape] = useState<'round' | 'square'>('round');
   const [brushType, setBrushType] = useState<'default' | 'fine-liner' | 'charcoal' | 'watermark'>('default');
-
   const [charcoalPattern, setCharcoalPattern] = useState<CanvasPattern | null>(null);
-
 
   // Load charcoal texture
   useEffect(() => {
@@ -101,11 +106,19 @@ export default function Poster() {
   const resizeCanvasToFrame = () => {
     const canvas = canvasRef.current;
     const frame = frameRef.current;
+    const dpr = window.devicePixelRatio || 1;
+  
     if (canvas && frame) {
-      canvas.width = frame.clientWidth;
-      canvas.height = frame.clientHeight;
+      canvas.width = frame.clientWidth * dpr;
+      canvas.height = frame.clientHeight * dpr;
+      canvas.style.width = `${frame.clientWidth}px`;
+      canvas.style.height = `${frame.clientHeight}px`;
+  
+      const ctx = canvas.getContext('2d');
+      if (ctx) ctx.scale(dpr, dpr); // Scale drawing operations
     }
   };
+  
 
   useEffect(() => {
     resizeCanvasToFrame();
@@ -113,18 +126,31 @@ export default function Poster() {
     return () => window.removeEventListener('resize', resizeCanvasToFrame);
   }, []);
 
-
   return (
     <div className="poster-wrapper">
-
       <div className="options">
-      <input type="file" accept="image/*" onChange={handleImageUpload} />
+        <input type="file" accept="image/*" onChange={handleImageUpload} />
 
-        <div className="color-families">
-          <span className="font-bold mr-2">Brush Colors:</span>
-          {colorFamilies.map((family, index) => (
-            <div key={index} className="color-family">
-              {family.map((color) => (
+        {/* Color Palette Selection */}
+        <div className="color-families mb-4">
+          <label className="font-bold mr-2">Color Palette:</label>
+          <select
+            value={selectedPalette}
+            onChange={(e) => setSelectedPalette(Number(e.target.value))}
+            className="ml-2"
+          >
+            <option value={-1}>Select a Palette</option>
+            {colorFamilies.map((_, index) => (
+              <option key={index} value={index}>
+                Palette {index + 1}
+              </option>
+            ))}
+          </select>
+
+          {/* Show only selected palette colors */}
+          {selectedPalette !== -1 && (
+            <div className="color-family mt-2">
+              {colorFamilies[selectedPalette].map((color) => (
                 <button
                   key={color}
                   className={`color-swatch ${brushColor === color ? 'selected' : ''}`}
@@ -134,10 +160,10 @@ export default function Poster() {
                 />
               ))}
             </div>
-          ))}
+          )}
         </div>
 
-
+        {/* Brush Settings */}
         <label>
           Brush Size:
           <input
@@ -212,7 +238,7 @@ export default function Poster() {
           <h1 className="title2" contentEditable>Project titel</h1>
         </div>
 
-        <div className="footer relative z-20">– Fides Lapidair</div>
+        <div className="footer relative z-20">– Fides Lapidaire</div>
       </div>
     </div>
   );
