@@ -11,7 +11,21 @@ export default function Poster() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [imageOffset, setImageOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [title1Top, setTitle1Top] = useState('Project titel');
+  const [title1Bottom, setTitle1Bottom] = useState('Project titel');
+
   const [toolMode, setToolMode] = useState<'draw' | 'move'>('draw');
+
+  const [aspectRatio, setAspectRatio] = useState('1:1');
+
+  const aspectRatioMap: { [key: string]: number } = {
+    '1:1': 1,
+    '4:5': 4 / 5,
+    '9:16': 9 / 16,
+    '1,91:1': 1.91,
+    '16:9': 16 / 9,
+    '1:1.414': 1 / 1.414,
+  };
 
   const colorFamilies = [
     ['rgb(87,43,2)', 'rgb(228,234,97)', 'rgb(214,220,221)'],
@@ -145,16 +159,35 @@ export default function Poster() {
     const canvas = canvasRef.current;
     const frame = frameRef.current;
     if (canvas && frame) {
-      canvas.width = frame.clientWidth;
-      canvas.height = frame.clientHeight;
+      const ratio = aspectRatioMap[aspectRatio];
+      const width = frame.clientWidth;
+      const height = width / ratio;
+  
+      const dpr = window.devicePixelRatio || 1;
+  
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+  
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+  
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // reset any previous transform
+        ctx.scale(dpr, dpr);
+      }
+  
+      frame.style.height = `${height}px`;
     }
   };
+  
 
   useEffect(() => {
     resizeCanvasToFrame();
     window.addEventListener('resize', resizeCanvasToFrame);
     return () => window.removeEventListener('resize', resizeCanvasToFrame);
-  }, []);
+  }, [aspectRatio]);
+
 
   return (
     <div className="poster-wrapper p-4 space-y-4">
@@ -166,6 +199,16 @@ export default function Poster() {
           <select value={toolMode} onChange={(e) => setToolMode(e.target.value as 'draw' | 'move')} className="ml-2">
             <option value="draw">Draw</option>
             <option value="move">Move Image</option>
+          </select>
+        </label>
+
+
+        <label>
+          Canvas Ratio:
+          <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} className="ml-2">
+            {Object.keys(aspectRatioMap).map((key) => (
+              <option key={key} value={key}>{key}</option>
+            ))}
           </select>
         </label>
 
@@ -224,6 +267,27 @@ export default function Poster() {
             <option value="watermark">Watermark</option>
           </select>
         </label>
+        <div className="space-y-2">
+          <label>
+            1:
+            <input
+              type="text"
+              value={title1Top}
+              onChange={(e) => setTitle1Top(e.target.value)}
+              className="ml-2 border px-2 py-1"
+            />
+          </label>
+            <br/>
+          <label>
+            2:
+            <input
+              type="text"
+              value={title1Bottom}
+              onChange={(e) => setTitle1Bottom(e.target.value)}
+              className="ml-2 border px-2 py-1"
+            />
+          </label>
+        </div>
       </div>
 
       <div
@@ -246,14 +310,15 @@ export default function Poster() {
 
         <div className="title-wrapper t1">
           <div className='wrapper'>
-            <h1 className="title1">Project titel</h1>
+            <h1 className="title1">{title1Top}</h1>
             <div className="line"></div>
           </div>
           <div className='wrapper'>
             <div className="line"></div>
-            <h1 className="title1">Project titel</h1>
+            <h1 className="title1">{title1Bottom}</h1>
           </div>
         </div>
+
 
         <canvas
           ref={canvasRef}
