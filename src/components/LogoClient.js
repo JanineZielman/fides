@@ -28,7 +28,7 @@ export default function LogoClient({ images }) {
         const { naturalWidth, naturalHeight } = imgRef.current;
         const vh = window.innerHeight * 0.5; // 50vh in pixels
         const scaledWidth = (naturalWidth / naturalHeight) * vh;
-        setContainerWidth(scaledWidth);
+        setContainerWidth(scaledWidth - 17);
       }
     };
 
