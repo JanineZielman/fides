@@ -161,19 +161,21 @@ export default function Poster() {
     const frame = frameRef.current;
     if (canvas && frame) {
       const ratio = aspectRatioMap[aspectRatio];
-      const width = frame.clientWidth;
-      const height = width / ratio;
+      const height = frame.clientHeight;
+      const width = height * ratio;
   
       const dpr = window.devicePixelRatio || 1;
   
       // ✅ Backup existing canvas content
       const prevImage = canvas.toDataURL();
   
-      canvas.width = width * dpr;
       canvas.height = height * dpr;
+      canvas.width = width * dpr;
+      
   
-      canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
+      canvas.style.width = `${width}px`;
+      
   
       const ctx = canvas.getContext('2d');
       if (ctx) {
@@ -188,7 +190,7 @@ export default function Poster() {
         };
       }
   
-      frame.style.height = `${height}px`;
+      frame.style.width = `${width}px`;
     }
   };
   
@@ -391,7 +393,6 @@ export default function Poster() {
 
         <canvas
           ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full z-10"
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
