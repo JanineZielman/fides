@@ -166,6 +166,9 @@ export default function Poster() {
   
       const dpr = window.devicePixelRatio || 1;
   
+      // ✅ Backup existing canvas content
+      const prevImage = canvas.toDataURL();
+  
       canvas.width = width * dpr;
       canvas.height = height * dpr;
   
@@ -174,8 +177,15 @@ export default function Poster() {
   
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // reset any previous transform
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
         ctx.scale(dpr, dpr);
+  
+        // ✅ Restore previous drawing
+        const img = new Image();
+        img.src = prevImage;
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, width, height);
+        };
       }
   
       frame.style.height = `${height}px`;
