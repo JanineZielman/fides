@@ -137,10 +137,6 @@ export default function Poster() {
     ctx.stroke();
   };
 
-  const stopDrawing = () => {
-    setIsDrawing(false);
-  };
-
   const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
     if (toolMode !== 'move') return;
     setIsDragging(true);
@@ -238,10 +234,6 @@ export default function Poster() {
     ctx.stroke();
   };
   
-  
-  const stopTouchDrawing = () => {
-    setIsDrawing(false);
-  };
 
   useEffect(() => {
     const preventDefault = (e: TouchEvent) => {
@@ -258,6 +250,55 @@ export default function Poster() {
   function print(){
     window.print();
   }
+
+  const [history, setHistory] = useState<string[]>([]);
+
+const stopDrawing = () => {
+  setIsDrawing(false);
+  const canvas = canvasRef.current;
+  if (canvas) {
+    const snapshot = canvas.toDataURL();
+    setHistory((prev) => [...prev, snapshot]);
+  }
+};
+
+const stopTouchDrawing = () => {
+  setIsDrawing(false);
+  const canvas = canvasRef.current;
+  if (canvas) {
+    const snapshot = canvas.toDataURL();
+    setHistory((prev) => [...prev, snapshot]);
+  }
+};
+
+const handleUndo = () => {
+  const canvas = canvasRef.current;
+  const ctx = canvas?.getContext('2d');
+  if (!canvas || !ctx || history.length === 0) return;
+
+  const newHistory = [...history];
+  newHistory.pop();
+  const lastSnapshot = newHistory[newHistory.length - 1];
+
+  if (lastSnapshot) {
+    const img = new Image();
+    img.src = lastSnapshot;
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        canvas.width / (window.devicePixelRatio || 1),
+        canvas.height / (window.devicePixelRatio || 1)
+      );
+    };
+  } else {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  setHistory(newHistory);
+};
 
 
   return (
@@ -409,6 +450,12 @@ export default function Poster() {
           <h1 className="title2">Lapidaire</h1>
         </div>
       </div>
+      <button
+        onClick={handleUndo}
+        className="undo"
+      >
+        Undo
+      </button>
       <div className='print' onClick={print}>Print / Save</div>
     </div>
   );

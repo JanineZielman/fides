@@ -230,6 +230,12 @@ h1,h2,h3,h4,h5,h6{
   }
 }
 
+.undo{
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+}
+
 @media print{
 
   .poster-wrapper {
@@ -334,7 +340,7 @@ h1,h2,h3,h4,h5,h6{
     size: 148mm 263mm; 
   }   
 
-  .print{
+  .print, .undo{
     display: none;
   }
 }
