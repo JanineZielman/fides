@@ -253,7 +253,9 @@ export default function Poster() {
     };
   }, [isDrawing]);
   
-  
+  function print(){
+    window.print();
+  }
 
 
   return (
@@ -359,7 +361,7 @@ export default function Poster() {
 
       <div
         ref={frameRef}
-        className="frame relative overflow-hidden border border-gray-300"
+        className={`frame ratio-${aspectRatio.replace(/[^0-9]/g, '-')}`}
         onMouseDown={startDrag}
         onMouseMove={onDrag}
         onMouseUp={stopDrag}
@@ -406,6 +408,7 @@ export default function Poster() {
           <h1 className="title2">Lapidaire</h1>
         </div>
       </div>
+      <div className='print' onClick={print}>Print / Save</div>
     </div>
   );
 }

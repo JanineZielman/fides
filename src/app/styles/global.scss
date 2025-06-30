@@ -168,7 +168,7 @@ h1,h2,h3,h4,h5,h6{
 .options{
   display: flex;
   justify-content: space-between;
-  max-width: 1400px;
+  max-width: 1500px;
   padding: 14px;
   flex-wrap: wrap;
   input{
@@ -211,12 +211,103 @@ h1,h2,h3,h4,h5,h6{
   }
 }
 
+.print{
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  cursor: pointer;
+}
 
 @media print{
+
+  .poster-wrapper {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .frame {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0;
+    break-inside: avoid;
+  }
+
+  .frame canvas {
+    image-rendering: auto; /* Ensures smoother output for print */
+  }
+
+  @page{
+    size: auto;
+    margin: 0;
+  }
+
   .poster-wrapper{
     .options, input{
       display: none;
     }
+  }
+  .ratio-1-1 {
+    width: 210mm!important; 
+    height: 210mm!important;
+    page: ratio-1-1;
+  }
+
+  .ratio-4-5 {
+    width: 160mm!important; 
+    height: 200mm!important;
+    page: ratio-4-5;
+  }
+
+  .ratio-16-9 {
+    width: 297mm!important; 
+    height: 167mm!important;
+    page: ratio-16-9;
+  }
+
+  .ratio-1-1-414 {
+    width: 297mm!important;
+    height: 420mm!important;
+    page: ratio-a-series;
+  }
+
+  .ratio-1-91-1{
+    width: 263mm!important;
+    height: 138mm!important;
+    page: ratio-1-91-1;
+  }
+
+  .ratio-9-16 { 
+    width: 148mm!important;
+    height: 263mm!important;
+    page: ratio-9-16; 
+  }
+
+  @page ratio-1-1 {
+    size: 210mm 210mm; /* Square A4-like */
+  }
+  
+  @page ratio-4-5 {
+    size: 160mm 200mm;
+  }
+  
+  @page ratio-16-9 {
+    size: 297mm 167mm;
+  }
+
+  @page ratio-1-91-1 { 
+    size: 263mm 138mm; 
+  } 
+  
+  @page ratio-a-series {
+    size: A3;
+  }
+
+  @page ratio-9-16 { 
+    size: 148mm 263mm; 
+  }   
+
+  .print{
+    display: none;
   }
 }
 
