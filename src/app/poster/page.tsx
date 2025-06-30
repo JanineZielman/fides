@@ -424,11 +424,17 @@ const handleUndo = () => {
           <div className='wrapper'>
             <h1 className="title1">{title1Top}</h1>
             <div className="line"></div>
+            {(aspectRatio == '16:9' || aspectRatio == '1,91:1') &&
+              <h1 className="title1">{title1Bottom}</h1>
+            }
           </div>
-          <div className='wrapper'>
-            <div className="line"></div>
-            <h1 className="title1">{title1Bottom}</h1>
-          </div>
+          {aspectRatio != '16:9'  &&
+            aspectRatio != '1,91:1' &&
+            <div className='wrapper'>
+              <div className="line"></div>
+              <h1 className="title1">{title1Bottom}</h1>
+            </div>
+          }
         </div>
 
 
