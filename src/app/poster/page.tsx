@@ -119,8 +119,9 @@ export default function Poster() {
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (toolMode !== 'draw') return;
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     applyBrushSettings(ctx);
     ctx.beginPath();
     ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
@@ -187,6 +188,62 @@ export default function Poster() {
     window.addEventListener('resize', resizeCanvasToFrame);
     return () => window.removeEventListener('resize', resizeCanvasToFrame);
   }, [aspectRatio]);
+
+  const startTouchDrawing = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (toolMode !== 'draw') return;
+  
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+  
+    const rect = canvas.getBoundingClientRect(); // ✅ Safe now
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+  
+    applyBrushSettings(ctx);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+  
+  
+  const touchDraw = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || toolMode !== 'draw') return;
+  
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+  
+    const rect = canvas.getBoundingClientRect(); // ✅ Safe now
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+  
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+  
+  
+  const stopTouchDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  useEffect(() => {
+    const preventDefault = (e: TouchEvent) => {
+      if (isDrawing) e.preventDefault();
+    };
+  
+    document.addEventListener('touchmove', preventDefault, { passive: false });
+  
+    return () => {
+      document.removeEventListener('touchmove', preventDefault);
+    };
+  }, [isDrawing]);
+  
+  
 
 
   return (
@@ -327,7 +384,11 @@ export default function Poster() {
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
+          onTouchStart={startTouchDrawing}
+          onTouchMove={touchDraw}
+          onTouchEnd={stopTouchDrawing}
         />
+
 
         <div className="title-wrapper t2">
           <h1 className="title2">Fides</h1>
