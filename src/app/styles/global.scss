@@ -72,6 +72,7 @@ h1,h2,h3,h4,h5,h6{
 .frame {
   width: 600px;
   height: 600px;
+  max-width: 100%;
   border: 1px solid black;
   position: relative;
   margin: 0 auto;
@@ -169,6 +170,7 @@ h1,h2,h3,h4,h5,h6{
   justify-content: space-between;
   max-width: 1400px;
   padding: 14px;
+  flex-wrap: wrap;
   input{
     width: 200px;
   }
@@ -218,3 +220,17 @@ h1,h2,h3,h4,h5,h6{
   }
 }
 
+@media only screen and (max-width: 600px) {
+  .options{
+    max-width: 100%;
+  }
+  label, input, .color-families{
+    margin-bottom: 10px;
+  }
+  .frame .title-wrapper h1{
+    font-size: 6.5vw;
+  }
+  .frame .title-wrapper .line{
+    border-bottom: 2px solid black;
+  }
+}
