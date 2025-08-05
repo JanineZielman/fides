@@ -13,6 +13,7 @@ export default function Poster() {
   const [imageOffset, setImageOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [title1Top, setTitle1Top] = useState('Project titel');
   const [title1Bottom, setTitle1Bottom] = useState('Project titel');
+  const [imageScale, setImageScale] = useState(1); // default scale is 100%
 
   const [toolMode, setToolMode] = useState<'draw' | 'move'>('draw');
 
@@ -304,7 +305,9 @@ const handleUndo = () => {
   return (
     <div className="poster-wrapper p-4 space-y-4">
       <div className="options space-y-4">
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
+        <label>
+          <input type="file" accept="image/*" onChange={handleImageUpload} />
+        </label>
 
         <label>
           Tool Mode:
@@ -312,6 +315,20 @@ const handleUndo = () => {
             <option value="draw">Draw</option>
             <option value="move">Move Image</option>
           </select>
+        </label>
+
+        <label>
+          Image Scale:
+          <input
+            type="range"
+            min={0.1}
+            max={3}
+            step={0.01}
+            value={imageScale}
+            onChange={(e) => setImageScale(parseFloat(e.target.value))}
+            className="ml-2"
+          />
+          <span className="ml-2">{Math.round(imageScale * 100)}%</span>
         </label>
 
 
@@ -324,8 +341,8 @@ const handleUndo = () => {
           </select>
         </label>
 
-        <div className="color-families">
-          <label className="font-bold mr-2">Color Palette:</label>
+        <label className="color-families">
+          Color Palette:
           <select
             value={selectedFamilyIndex}
             onChange={(e) => {
@@ -350,7 +367,7 @@ const handleUndo = () => {
               />
             ))}
           </div>
-        </div>
+        </label>
 
         <label>
           Brush Size:
@@ -389,7 +406,6 @@ const handleUndo = () => {
               className="ml-2 border px-2 py-1"
             />
           </label>
-            <br/>
           <label>
             2:
             <input
@@ -416,7 +432,11 @@ const handleUndo = () => {
             src={imageURL}
             alt="Uploaded"
             className="absolute top-0 left-0 z-0"
-            style={{ pointerEvents: 'none', transform: `translate(${imageOffset.x}px, ${imageOffset.y}px)` }}
+            style={{
+              pointerEvents: 'none',
+              transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${imageScale})`,
+              transformOrigin: 'top left'
+            }}
           />
         )}
 
@@ -424,17 +444,7 @@ const handleUndo = () => {
           <div className='wrapper'>
             <h1 className="title1">{title1Top}</h1>
             <div className="line"></div>
-            {(aspectRatio == '16:9' || aspectRatio == '1,91:1') &&
-              <h1 className="title1">{title1Bottom}</h1>
-            }
           </div>
-          {aspectRatio != '16:9'  &&
-            aspectRatio != '1,91:1' &&
-            <div className='wrapper'>
-              <div className="line"></div>
-              <h1 className="title1">{title1Bottom}</h1>
-            </div>
-          }
         </div>
 
 
@@ -451,9 +461,8 @@ const handleUndo = () => {
 
 
         <div className="title-wrapper t2">
-          <h1 className="title2">Fides</h1>
-          <div className="line"></div>
-          <h1 className="title2">Lapidaire</h1>
+        <div className="line"></div>
+        <h1 className="title1">{title1Bottom}</h1>
         </div>
       </div>
       <button

@@ -75,9 +75,7 @@ h1,h2,h3,h4,h5,h6{
   max-width: 100%;
   border: 1px solid black;
   position: relative;
-  margin: 0 auto;
-  margin-top: 14px;
-  margin-bottom: 100px;
+  margin: 14px;
   overflow: hidden;
 
   canvas {
@@ -168,11 +166,21 @@ h1,h2,h3,h4,h5,h6{
 
 .options{
   display: flex;
-  justify-content: space-between;
-  max-width: 1500px;
+  flex-direction: column;
+  max-width: 220px;
   padding: 14px;
   flex-wrap: wrap;
+  position: fixed;
+  right: 14px;
+  top: 0;
   input{
+    width: 100%;
+  }
+  label{
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    position: relative;
     width: 200px;
   }
 }
