@@ -3,6 +3,9 @@
 import { useRef, useState, useEffect } from 'react';
 
 export default function Poster() {
+
+  type BrushType = 'default' | 'fine-liner' | 'charcoal' | 'watermark' | 'chalk';
+  
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -38,6 +41,7 @@ export default function Poster() {
     ['rgb(255,0,0)', 'rgb(1,95,81)', 'rgb(227,191,238)'],
     ['rgb(71,8,20)', 'rgb(173,252,247)', 'rgb(172,62,46)'],
   ];
+  
 
   const [selectedFamilyIndex, setSelectedFamilyIndex] = useState(0);
   const [brushColor, setBrushColor] = useState(colorFamilies[0][0]);
@@ -45,6 +49,7 @@ export default function Poster() {
   const [brushShape, setBrushShape] = useState<'round' | 'square'>('round');
   const [brushType, setBrushType] = useState<'default' | 'fine-liner' | 'charcoal' | 'watermark' | 'chalk'>('default');
   const [charcoalPattern, setCharcoalPattern] = useState<CanvasPattern | null>(null);
+  
 
   useEffect(() => {
     const img = new Image();
@@ -362,7 +367,7 @@ export default function Poster() {
           Brush Type:
           <select
             value={brushType}
-            onChange={(e) => setBrushType(e.target.value as any)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setBrushType(e.target.value as BrushType)}
             className="ml-2"
           >
             <option value="default">Default</option>
