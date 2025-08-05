@@ -11,13 +11,15 @@ export default function Poster() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [imageOffset, setImageOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [imageScale, setImageScale] = useState(1);
   const [title1Top, setTitle1Top] = useState('Project titel');
   const [title1Bottom, setTitle1Bottom] = useState('Project titel');
-  const [imageScale, setImageScale] = useState(1); // default scale is 100%
 
   const [toolMode, setToolMode] = useState<'draw' | 'move'>('draw');
 
   const [aspectRatio, setAspectRatio] = useState('1:1');
+
+  const [prevDrawPoint, setPrevDrawPoint] = useState({ x: 0, y: 0 });
 
   const aspectRatioMap: { [key: string]: number } = {
     '1:1': 1,
@@ -41,7 +43,7 @@ export default function Poster() {
   const [brushColor, setBrushColor] = useState(colorFamilies[0][0]);
   const [brushSize, setBrushSize] = useState(10);
   const [brushShape, setBrushShape] = useState<'round' | 'square'>('round');
-  const [brushType, setBrushType] = useState<'default' | 'fine-liner' | 'charcoal' | 'watermark'>('default');
+  const [brushType, setBrushType] = useState<'default' | 'fine-liner' | 'charcoal' | 'watermark' | 'chalk'>('default');
   const [charcoalPattern, setCharcoalPattern] = useState<CanvasPattern | null>(null);
 
   useEffect(() => {
@@ -110,6 +112,11 @@ export default function Poster() {
         ctx.lineWidth = brushSize;
         ctx.globalAlpha = 0.1;
         break;
+      case 'chalk':
+        ctx.strokeStyle = brushColor;
+        ctx.lineWidth = brushSize;
+        ctx.lineCap = 'round';
+        break;
       default:
         ctx.strokeStyle = brushColor;
         ctx.lineWidth = brushSize;
@@ -126,16 +133,52 @@ export default function Poster() {
     applyBrushSettings(ctx);
     ctx.beginPath();
     ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    setPrevDrawPoint({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY });
     setIsDrawing(true);
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing || toolMode !== 'draw') return;
+
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!ctx) return;
-    ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-    ctx.stroke();
+
+    const x = e.nativeEvent.offsetX;
+    const y = e.nativeEvent.offsetY;
+
+    if (brushType === 'chalk') {
+      const dx = x - prevDrawPoint.x;
+      const dy = y - prevDrawPoint.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const steps = Math.floor(dist / 1.5);
+    
+      for (let i = 0; i < steps; i++) {
+        const progress = i / steps;
+        const cx = prevDrawPoint.x + dx * progress + (Math.random() - 0.5) * brushSize * 0.5;
+        const cy = prevDrawPoint.y + dy * progress + (Math.random() - 0.5) * brushSize * 0.5;
+    
+        const size = (Math.random() * brushSize) / 2 + 1;
+        const angle = Math.random() * Math.PI;
+    
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+        ctx.fillStyle = brushColor;
+        ctx.globalAlpha = 0.2 + Math.random() * 0.3;
+        ctx.fillRect(-size / 2, -size / 2, size, size);
+        ctx.restore();
+      }
+    
+      ctx.globalAlpha = 1.0;
+      setPrevDrawPoint({ x, y });
+    }
+    
+    
+     else {
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
   };
 
   const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -160,37 +203,32 @@ export default function Poster() {
       const ratio = aspectRatioMap[aspectRatio];
       const height = frame.clientHeight;
       const width = height * ratio;
-  
+
       const dpr = window.devicePixelRatio || 1;
-  
-      // ✅ Backup existing canvas content
+
       const prevImage = canvas.toDataURL();
-  
+
       canvas.height = height * dpr;
       canvas.width = width * dpr;
-      
-  
+
       canvas.style.height = `${height}px`;
       canvas.style.width = `${width}px`;
-      
-  
+
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(dpr, dpr);
-  
-        // ✅ Restore previous drawing
+
         const img = new Image();
         img.src = prevImage;
         img.onload = () => {
           ctx.drawImage(img, 0, 0, width, height);
         };
       }
-  
+
       frame.style.width = `${width}px`;
     }
   };
-  
 
   useEffect(() => {
     resizeCanvasToFrame();
@@ -198,122 +236,69 @@ export default function Poster() {
     return () => window.removeEventListener('resize', resizeCanvasToFrame);
   }, [aspectRatio]);
 
-  const startTouchDrawing = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (toolMode !== 'draw') return;
-  
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-  
-    const rect = canvas.getBoundingClientRect(); // ✅ Safe now
-    const touch = e.touches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-  
-    applyBrushSettings(ctx);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    setIsDrawing(true);
-  };
-  
-  
-  const touchDraw = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || toolMode !== 'draw') return;
-  
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-  
-    const rect = canvas.getBoundingClientRect(); // ✅ Safe now
-    const touch = e.touches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-  
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-  
-
-  useEffect(() => {
-    const preventDefault = (e: TouchEvent) => {
-      if (isDrawing) e.preventDefault();
-    };
-  
-    document.addEventListener('touchmove', preventDefault, { passive: false });
-  
-    return () => {
-      document.removeEventListener('touchmove', preventDefault);
-    };
-  }, [isDrawing]);
-  
-  function print(){
-    window.print();
-  }
-
   const [history, setHistory] = useState<string[]>([]);
 
-const stopDrawing = () => {
-  setIsDrawing(false);
-  const canvas = canvasRef.current;
-  if (canvas) {
-    const snapshot = canvas.toDataURL();
-    setHistory((prev) => [...prev, snapshot]);
-  }
-};
+  const stopDrawing = () => {
+    setIsDrawing(false);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const snapshot = canvas.toDataURL();
+      setHistory((prev) => [...prev, snapshot]);
+    }
+  };
 
-const stopTouchDrawing = () => {
-  setIsDrawing(false);
-  const canvas = canvasRef.current;
-  if (canvas) {
-    const snapshot = canvas.toDataURL();
-    setHistory((prev) => [...prev, snapshot]);
-  }
-};
+  const handleUndo = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx || history.length === 0) return;
 
-const handleUndo = () => {
-  const canvas = canvasRef.current;
-  const ctx = canvas?.getContext('2d');
-  if (!canvas || !ctx || history.length === 0) return;
+    const newHistory = [...history];
+    newHistory.pop();
+    const lastSnapshot = newHistory[newHistory.length - 1];
 
-  const newHistory = [...history];
-  newHistory.pop();
-  const lastSnapshot = newHistory[newHistory.length - 1];
-
-  if (lastSnapshot) {
-    const img = new Image();
-    img.src = lastSnapshot;
-    img.onload = () => {
+    if (lastSnapshot) {
+      const img = new Image();
+      img.src = lastSnapshot;
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(
+          img,
+          0,
+          0,
+          canvas.width / (window.devicePixelRatio || 1),
+          canvas.height / (window.devicePixelRatio || 1)
+        );
+      };
+    } else {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(
-        img,
-        0,
-        0,
-        canvas.width / (window.devicePixelRatio || 1),
-        canvas.height / (window.devicePixelRatio || 1)
-      );
-    };
-  } else {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    setHistory(newHistory);
+  };
+
+  function print() {
+    window.print();
   }
-
-  setHistory(newHistory);
-};
-
 
   return (
     <div className="poster-wrapper p-4 space-y-4">
       <div className="options space-y-4">
-        <label>
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
-        </label>
+        <input type="file" accept="image/*" onChange={handleImageUpload} />
 
         <label>
           Tool Mode:
           <select value={toolMode} onChange={(e) => setToolMode(e.target.value as 'draw' | 'move')} className="ml-2">
             <option value="draw">Draw</option>
             <option value="move">Move Image</option>
+          </select>
+        </label>
+
+        <label>
+          Canvas Ratio:
+          <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} className="ml-2">
+            {Object.keys(aspectRatioMap).map((key) => (
+              <option key={key} value={key}>{key}</option>
+            ))}
           </select>
         </label>
 
@@ -331,18 +316,8 @@ const handleUndo = () => {
           <span className="ml-2">{Math.round(imageScale * 100)}%</span>
         </label>
 
-
-        <label>
-          Canvas Ratio:
-          <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} className="ml-2">
-            {Object.keys(aspectRatioMap).map((key) => (
-              <option key={key} value={key}>{key}</option>
-            ))}
-          </select>
-        </label>
-
-        <label className="color-families">
-          Color Palette:
+        <div className="color-families">
+          <label className="font-bold mr-2">Color Palette:</label>
           <select
             value={selectedFamilyIndex}
             onChange={(e) => {
@@ -367,7 +342,7 @@ const handleUndo = () => {
               />
             ))}
           </div>
-        </label>
+        </div>
 
         <label>
           Brush Size:
@@ -387,15 +362,17 @@ const handleUndo = () => {
           Brush Type:
           <select
             value={brushType}
-            onChange={(e) => setBrushType(e.target.value as 'default' | 'fine-liner' | 'charcoal' | 'watermark')}
+            onChange={(e) => setBrushType(e.target.value as any)}
             className="ml-2"
           >
             <option value="default">Default</option>
             <option value="fine-liner">Fine Liner</option>
             <option value="charcoal">Charcoal</option>
             <option value="watermark">Watermark</option>
+            <option value="chalk">Chalk (Effect)</option>
           </select>
         </label>
+
         <div className="space-y-2">
           <label>
             1:
@@ -406,6 +383,7 @@ const handleUndo = () => {
               className="ml-2 border px-2 py-1"
             />
           </label>
+          <br />
           <label>
             2:
             <input
@@ -447,30 +425,24 @@ const handleUndo = () => {
           </div>
         </div>
 
-
         <canvas
           ref={canvasRef}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
-          onTouchStart={startTouchDrawing}
-          onTouchMove={touchDraw}
-          onTouchEnd={stopTouchDrawing}
         />
 
-
         <div className="title-wrapper t2">
-        <div className="line"></div>
-        <h1 className="title1">{title1Bottom}</h1>
+          <div className="line"></div>
+          <h1 className="title1">{title1Bottom}</h1>
         </div>
       </div>
-      <button
-        onClick={handleUndo}
-        className="undo"
-      >
+
+      <button onClick={handleUndo} className="undo">
         Undo
       </button>
+
       <div className='print' onClick={print}>Print / Save</div>
     </div>
   );
