@@ -191,6 +191,10 @@ h1,h2,h3,h4,h5,h6{
   gap: 1rem;
   margin-top: 0.5rem;
   flex-wrap: wrap;
+  margin-bottom: 24px;
+  label{
+    margin-bottom: 0;
+  }
 
   .color-family {
     display: flex;

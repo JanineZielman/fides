@@ -17,6 +17,7 @@ export default function Poster() {
   const [imageScale, setImageScale] = useState(1);
   const [title1Top, setTitle1Top] = useState('Project titel');
   const [title1Bottom, setTitle1Bottom] = useState('Project titel');
+  const [textBorderColor, setTextBorderColor] = useState<'black' | 'white'>('black');
 
   const [toolMode, setToolMode] = useState<'draw' | 'move'>('draw');
 
@@ -347,6 +348,18 @@ export default function Poster() {
               />
             ))}
           </div>
+
+          <label>
+            Text & Border Color:
+            <select
+              value={textBorderColor}
+              onChange={(e) => setTextBorderColor(e.target.value as 'black' | 'white')}
+              className="ml-2"
+            >
+              <option value="black">Black</option>
+              <option value="white">White</option>
+            </select>
+          </label>
         </div>
 
         <label>
@@ -425,8 +438,8 @@ export default function Poster() {
 
         <div className="title-wrapper t1">
           <div className='wrapper'>
-            <h1 className="title1">{title1Top}</h1>
-            <div className="line"></div>
+            <h1 className="title1" style={{ color: textBorderColor }}>{title1Top}</h1>
+            <div className="line" style={{ borderColor: textBorderColor }}></div>
           </div>
         </div>
 
@@ -439,8 +452,8 @@ export default function Poster() {
         />
 
         <div className="title-wrapper t2">
-          <div className="line"></div>
-          <h1 className="title1">{title1Bottom}</h1>
+          <div className="line" style={{ borderColor: textBorderColor }}></div>
+          <h1 className="title1" style={{ color: textBorderColor }}>{title1Bottom}</h1>
         </div>
       </div>
 
