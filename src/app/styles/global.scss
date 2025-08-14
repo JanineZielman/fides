@@ -124,7 +124,7 @@ h1,h2,h3,h4,h5,h6{
 
     h1 {
       width: fit-content;
-      font-size: 38px;
+      font-size: 48px;
       line-height: 1;
       margin: 0;
       white-space: nowrap;
@@ -164,6 +164,7 @@ h1,h2,h3,h4,h5,h6{
   }
 }
 
+
 .options{
   display: flex;
   flex-direction: column;
@@ -173,6 +174,9 @@ h1,h2,h3,h4,h5,h6{
   position: fixed;
   right: 14px;
   top: 0;
+  *{
+    font-size: 14px;
+  }
   input{
     width: 100%;
   }
@@ -248,6 +252,17 @@ h1,h2,h3,h4,h5,h6{
   bottom: 14px;
 }
 
+.ratio-4-5, .ratio-1-1-414  {
+  .title-wrapper{
+    h1{
+      font-size: 40px;
+    }
+    .line{
+      border-width: 3px;
+    }
+  }
+}
+
 @media print{
 
   .poster-wrapper {
@@ -260,11 +275,6 @@ h1,h2,h3,h4,h5,h6{
     box-shadow: none !important;
     margin: 0;
     break-inside: avoid;
-    .title-wrapper{
-      h1{
-        font-size: 48px;
-      }
-    }
   }
   
 
@@ -286,18 +296,39 @@ h1,h2,h3,h4,h5,h6{
     width: 210mm!important; 
     height: 210mm!important;
     page: ratio-1-1;
+    .title-wrapper{
+      h1{
+        font-size: 70px;
+      }
+      .line{
+        border-width: 5px;
+      }
+    }
   }
 
   .ratio-4-5 {
     width: 160mm!important; 
     height: 200mm!important;
     page: ratio-4-5;
+    .title-wrapper{
+      h1{
+        font-size: 48px;
+      }
+      .line{
+        border-width: 3px;
+      }
+    }
   }
 
   .ratio-16-9 {
     width: 297mm!important; 
     height: 167mm!important;
     page: ratio-16-9;
+    .title-wrapper{
+      .line{
+        border-width: 3px;
+      }
+    }
   }
 
   .ratio-1-1-414 {
@@ -308,6 +339,9 @@ h1,h2,h3,h4,h5,h6{
       h1{
         font-size: 80px;
       }
+      .line{
+        border-width: 6px;
+      }
     }
   }
 
@@ -315,6 +349,11 @@ h1,h2,h3,h4,h5,h6{
     width: 263mm!important;
     height: 138mm!important;
     page: ratio-1-91-1;
+    .title-wrapper{
+      .line{
+        border-width: 3px;
+      }
+    }
   }
 
   .ratio-9-16 { 
@@ -355,6 +394,12 @@ h1,h2,h3,h4,h5,h6{
   .print, .undo{
     display: none;
   }
+}
+
+.file{
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid black;
 }
 
 @media only screen and (max-width: 600px) {

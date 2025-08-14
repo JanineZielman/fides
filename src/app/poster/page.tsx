@@ -289,15 +289,6 @@ export default function Poster() {
   return (
     <div className="poster-wrapper p-4 space-y-4">
       <div className="options space-y-4">
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
-
-        <label>
-          Tool Mode:
-          <select value={toolMode} onChange={(e) => setToolMode(e.target.value as 'draw' | 'move')} className="ml-2">
-            <option value="draw">Draw</option>
-            <option value="move">Move Image</option>
-          </select>
-        </label>
 
         <label>
           Canvas Ratio:
@@ -307,6 +298,39 @@ export default function Poster() {
             ))}
           </select>
         </label>
+
+        <div className="space-y-2">
+          <label>
+            1:
+            <input
+              type="text"
+              value={title1Top}
+              onChange={(e) => setTitle1Top(e.target.value)}
+              className="ml-2 border px-2 py-1"
+            />
+          </label>
+          <label>
+            2:
+            <input
+              type="text"
+              value={title1Bottom}
+              onChange={(e) => setTitle1Bottom(e.target.value)}
+              className="ml-2 border px-2 py-1"
+            />
+          </label>
+        </div>
+
+        <input className='file' type="file" accept="image/*" onChange={handleImageUpload} />
+
+        <label>
+          Tool Mode:
+          <select value={toolMode} onChange={(e) => setToolMode(e.target.value as 'draw' | 'move')} className="ml-2">
+            <option value="draw">Draw</option>
+            <option value="move">Move Image</option>
+          </select>
+        </label>
+
+
 
         <label>
           Image Scale:
@@ -391,27 +415,7 @@ export default function Poster() {
           </select>
         </label>
 
-        <div className="space-y-2">
-          <label>
-            1:
-            <input
-              type="text"
-              value={title1Top}
-              onChange={(e) => setTitle1Top(e.target.value)}
-              className="ml-2 border px-2 py-1"
-            />
-          </label>
-          <br />
-          <label>
-            2:
-            <input
-              type="text"
-              value={title1Bottom}
-              onChange={(e) => setTitle1Bottom(e.target.value)}
-              className="ml-2 border px-2 py-1"
-            />
-          </label>
-        </div>
+       
       </div>
 
       <div
