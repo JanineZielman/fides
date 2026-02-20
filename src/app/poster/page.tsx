@@ -287,7 +287,7 @@ export default function Poster() {
     window.print();
   }
 
-  let list = [
+  const list = [
     "1. Bodem & voedsel",
     "2. Bodem & voedsel",
     "Ontwerpende aanpak",
