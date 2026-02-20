@@ -5,7 +5,7 @@ import { useRef, useState, useEffect } from 'react';
 export default function Poster() {
 
   type BrushType = 'default' | 'fine-liner' | 'charcoal' | 'watermark' | 'chalk';
-  
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -35,14 +35,15 @@ export default function Poster() {
   };
 
   const colorFamilies = [
-    ['rgb(87,43,2)', 'rgb(228,234,97)', 'rgb(214,220,221)'],
-    ['rgb(173,252,247)', 'rgb(255,102,49)', 'rgb(87,43,2)'],
-    ['rgb(255,255,55)', 'rgb(207,246,98)', 'rgb(1,95,81)'],
-    ['rgb(31,46,255)', 'rgb(255,0,0)', 'rgb(151,207,239)'],
-    ['rgb(255,0,0)', 'rgb(1,95,81)', 'rgb(227,191,238)'],
-    ['rgb(71,8,20)', 'rgb(173,252,247)', 'rgb(172,62,46)'],
+    ['rgb(71,8,20)', 'rgb(110,129,0)', 'rgb(255,102,0)'],
+    ['rgb(116,11,37)', 'rgb(197,219,200)', 'rgb(213,244,86)'],
+    ['rgb(0,94,255)', 'rgb(0,188,97)', 'rgb(255,0,0)'],
+    ['rgb(0,59,255)', 'rgb(158,206,238)', 'rgb(162,176,0)'],
+    ['rgb(0,127,0)', '#FB71A8', 'rgb(255,255,0)'],
+    ['#FF6000', '#00B8B7', '#03FF00'],
+    ['#672108', '#6826F7', '#FF0091'],
   ];
-  
+
 
   const [selectedFamilyIndex, setSelectedFamilyIndex] = useState(0);
   const [brushColor, setBrushColor] = useState(colorFamilies[0][0]);
@@ -50,7 +51,7 @@ export default function Poster() {
   const [brushShape, setBrushShape] = useState<'round' | 'square'>('round');
   const [brushType, setBrushType] = useState<'default' | 'fine-liner' | 'charcoal' | 'watermark' | 'chalk'>('default');
   const [charcoalPattern, setCharcoalPattern] = useState<CanvasPattern | null>(null);
-  
+
 
   useEffect(() => {
     const img = new Image();
@@ -158,15 +159,15 @@ export default function Poster() {
       const dy = y - prevDrawPoint.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const steps = Math.floor(dist / 1.5);
-    
+
       for (let i = 0; i < steps; i++) {
         const progress = i / steps;
         const cx = prevDrawPoint.x + dx * progress + (Math.random() - 0.5) * brushSize * 0.5;
         const cy = prevDrawPoint.y + dy * progress + (Math.random() - 0.5) * brushSize * 0.5;
-    
+
         const size = (Math.random() * brushSize) / 2 + 1;
         const angle = Math.random() * Math.PI;
-    
+
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(angle);
@@ -175,13 +176,13 @@ export default function Poster() {
         ctx.fillRect(-size / 2, -size / 2, size, size);
         ctx.restore();
       }
-    
+
       ctx.globalAlpha = 1.0;
       setPrevDrawPoint({ x, y });
     }
-    
-    
-     else {
+
+
+    else {
       ctx.lineTo(x, y);
       ctx.stroke();
     }
@@ -286,6 +287,16 @@ export default function Poster() {
     window.print();
   }
 
+  let list = [
+    "1. Bodem & voedsel",
+    "2. Bodem & voedsel",
+    "Ontwerpende aanpak",
+    "Water & Klimaat",
+    "Geven",
+    "Vervuilling",
+    "Overig"
+  ]
+
   return (
     <div className="poster-wrapper p-4 space-y-4">
       <div className="options space-y-4">
@@ -358,7 +369,9 @@ export default function Poster() {
             className="ml-2"
           >
             {colorFamilies.map((_, index) => (
-              <option key={index} value={index}>Palette {index + 1}</option>
+              <option key={index} value={index}>
+                {list[index]}
+              </option>
             ))}
           </select>
 
@@ -415,7 +428,7 @@ export default function Poster() {
           </select>
         </label>
 
-       
+
       </div>
 
       <div
