@@ -428,3 +428,93 @@ h1,h2,h3,h4,h5,h6{
   }
 }
 
+
+// Keep drawing and controls in separate areas on tablets and phones.
+@media only screen and (max-width: 1024px) {
+  .poster-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 14px;
+
+    // Reset utility spacing when the visual order changes.
+    > * {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+    }
+
+    .frame {
+      order: 0;
+      align-self: center;
+      width: 600px !important;
+      max-width: 100%;
+      height: auto !important;
+      aspect-ratio: 1;
+      margin-left: 0;
+      margin-right: 0;
+      flex-shrink: 0;
+
+      &.ratio-4-5 { aspect-ratio: 4 / 5; }
+      &.ratio-9-16 { aspect-ratio: 9 / 16; }
+      &.ratio-1-91-1 { aspect-ratio: 1.91; }
+      &.ratio-16-9 { aspect-ratio: 16 / 9; }
+      &.ratio-1-1-414 { aspect-ratio: 1 / 1.414; }
+    }
+
+    .undo,
+    .print {
+      position: static;
+      align-self: flex-start;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+
+    .undo { order: 1; }
+    .print { order: 2; }
+
+    .options {
+      order: 3;
+      position: static;
+      width: 100%;
+      max-width: none;
+      padding: 16px 0 0;
+      border-top: 1px solid black;
+      gap: 16px;
+      flex-wrap: nowrap;
+
+      label {
+        width: 100%;
+        min-width: 0;
+        margin-bottom: 0;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+
+      input,
+      select {
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      input:not([type='range']),
+      select {
+        min-height: 44px;
+        font-size: 16px;
+      }
+
+      .space-y-2 {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .color-families {
+        width: 100%;
+        margin: 0;
+      }
+    }
+  }
+}

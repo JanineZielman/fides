@@ -10,9 +10,10 @@ export default function Poster() {
   const frameRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const [imageURL, setImageURL] = useState<string | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const isDrawing = useRef(false);
+  const activePointer = useRef<number | null>(null);
+  const isDragging = useRef(false);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
   const [imageOffset, setImageOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [imageScale, setImageScale] = useState(1);
   const [title1Top, setTitle1Top] = useState('Project titel');
@@ -23,7 +24,7 @@ export default function Poster() {
 
   const [aspectRatio, setAspectRatio] = useState('1:1');
 
-  const [prevDrawPoint, setPrevDrawPoint] = useState({ x: 0, y: 0 });
+  const prevDrawPoint = useRef({ x: 0, y: 0 });
 
   const aspectRatioMap: { [key: string]: number } = {
     '1:1': 1,
@@ -131,7 +132,7 @@ export default function Poster() {
     }
   };
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const startDrawing = (e: React.PointerEvent<HTMLDivElement>) => {
     if (toolMode !== 'draw') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -139,31 +140,31 @@ export default function Poster() {
     if (!ctx) return;
     applyBrushSettings(ctx);
     ctx.beginPath();
-    ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-    setPrevDrawPoint({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY });
-    setIsDrawing(true);
+    const point = getCanvasPoint(e);
+    ctx.moveTo(point.x, point.y);
+    prevDrawPoint.current = point;
+    isDrawing.current = true;
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || toolMode !== 'draw') return;
+  const draw = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDrawing.current || toolMode !== 'draw') return;
 
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!ctx) return;
 
-    const x = e.nativeEvent.offsetX;
-    const y = e.nativeEvent.offsetY;
+    const { x, y } = getCanvasPoint(e);
 
     if (brushType === 'chalk') {
-      const dx = x - prevDrawPoint.x;
-      const dy = y - prevDrawPoint.y;
+      const dx = x - prevDrawPoint.current.x;
+      const dy = y - prevDrawPoint.current.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const steps = Math.floor(dist / 1.5);
 
       for (let i = 0; i < steps; i++) {
         const progress = i / steps;
-        const cx = prevDrawPoint.x + dx * progress + (Math.random() - 0.5) * brushSize * 0.5;
-        const cy = prevDrawPoint.y + dy * progress + (Math.random() - 0.5) * brushSize * 0.5;
+        const cx = prevDrawPoint.current.x + dx * progress + (Math.random() - 0.5) * brushSize * 0.5;
+        const cy = prevDrawPoint.current.y + dy * progress + (Math.random() - 0.5) * brushSize * 0.5;
 
         const size = (Math.random() * brushSize) / 2 + 1;
         const angle = Math.random() * Math.PI;
@@ -178,7 +179,7 @@ export default function Poster() {
       }
 
       ctx.globalAlpha = 1.0;
-      setPrevDrawPoint({ x, y });
+      prevDrawPoint.current = { x, y };
     }
 
 
@@ -188,19 +189,48 @@ export default function Poster() {
     }
   };
 
-  const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (toolMode !== 'move') return;
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - imageOffset.x, y: e.clientY - imageOffset.y });
+  // Coordinates stay in CSS pixels because the context is scaled for Retina displays.
+  const getCanvasPoint = (e: React.PointerEvent<HTMLDivElement>) => {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    return {
+      x: (e.clientX - rect.left) * (canvas.width / dpr) / rect.width,
+      y: (e.clientY - rect.top) * (canvas.height / dpr) / rect.height,
+    };
   };
 
-  const onDrag = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || toolMode !== 'move' || !dragStart) return;
-    setImageOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+  const startPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointer.current !== null || !e.isPrimary || e.button !== 0) return;
+    e.preventDefault();
+    activePointer.current = e.pointerId;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    if (toolMode === 'draw') {
+      startDrawing(e);
+    } else {
+      isDragging.current = true;
+      dragStart.current = { x: e.clientX - imageOffset.x, y: e.clientY - imageOffset.y };
+    }
   };
 
-  const stopDrag = () => {
-    setIsDragging(false);
+  const movePointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointer.current !== e.pointerId) return;
+    e.preventDefault();
+    if (isDrawing.current) draw(e);
+    if (isDragging.current && dragStart.current) {
+      setImageOffset({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
+    }
+  };
+
+  const stopPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointer.current !== e.pointerId) return;
+    if (isDrawing.current) stopDrawing();
+    isDragging.current = false;
+    dragStart.current = null;
+    activePointer.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
   };
 
   const resizeCanvasToFrame = () => {
@@ -246,7 +276,8 @@ export default function Poster() {
   const [history, setHistory] = useState<string[]>([]);
 
   const stopDrawing = () => {
-    setIsDrawing(false);
+    if (!isDrawing.current) return;
+    isDrawing.current = false;
     const canvas = canvasRef.current;
     if (canvas) {
       const snapshot = canvas.toDataURL();
@@ -434,10 +465,12 @@ export default function Poster() {
       <div
         ref={frameRef}
         className={`frame ratio-${aspectRatio.replace(/[^0-9]/g, '-')}`}
-        onMouseDown={startDrag}
-        onMouseMove={onDrag}
-        onMouseUp={stopDrag}
-        onMouseLeave={stopDrag}
+        style={{ touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
+        onPointerDown={startPointer}
+        onPointerMove={movePointer}
+        onPointerUp={stopPointer}
+        onPointerCancel={stopPointer}
+        onLostPointerCapture={stopPointer}
       >
         {imageURL && (
           <img
@@ -462,10 +495,7 @@ export default function Poster() {
 
         <canvas
           ref={canvasRef}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
+          style={{ touchAction: 'none' }}
         />
 
         <div className="title-wrapper t2">
